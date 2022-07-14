@@ -17,13 +17,11 @@
 package fr.javatic.mongo.jacksonCodec.objectId;
 
 
-import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import de.undercouch.bson4jackson.BsonGenerator;
-import de.undercouch.bson4jackson.serializers.BsonSerializer;
 import de.undercouch.bson4jackson.types.ObjectId;
 
 import java.io.IOException;

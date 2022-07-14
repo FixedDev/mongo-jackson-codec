@@ -16,12 +16,11 @@
 
 package fr.javatic.mongo.jacksonCodec.javaTime.deserializers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.JacksonException;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import de.undercouch.bson4jackson.BsonConstants;
-import de.undercouch.bson4jackson.BsonParser;
-import de.undercouch.bson4jackson.deserializers.BsonDeserializer;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import de.undercouch.bson4jackson.deserializers.BsonDateDeserializer;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -29,21 +28,22 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 
-public class OffsetDateTimeDeserializer extends BsonDeserializer<OffsetDateTime> {
+public class OffsetDateTimeDeserializer extends JsonDeserializer<OffsetDateTime> {
+
+    private final BsonDateDeserializer dateDeserializer;
+
+    public OffsetDateTimeDeserializer(BsonDateDeserializer bsonDateDeserializer) {
+        this.dateDeserializer = bsonDateDeserializer;
+    }
+
+    public OffsetDateTimeDeserializer() {
+        this(new BsonDateDeserializer());
+    }
+
     @Override
-    public OffsetDateTime deserialize(BsonParser bsonParser, DeserializationContext ctxt) throws IOException,
-        JsonProcessingException {
-        if (bsonParser.getCurrentToken() != JsonToken.VALUE_EMBEDDED_OBJECT ||
-            bsonParser.getCurrentBsonType() != BsonConstants.TYPE_DATETIME) {
-            throw ctxt.mappingException(Date.class);
-        }
+    public OffsetDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
+        Date date = dateDeserializer.deserialize(p, ctxt);
 
-        Object obj = bsonParser.getEmbeddedObject();
-        if (obj == null) {
-            return null;
-        }
-
-        Date dt = (Date) obj;
-        return Instant.ofEpochMilli(dt.getTime()).atOffset(ZoneOffset.UTC);
+        return Instant.ofEpochMilli(date.getTime()).atOffset(ZoneOffset.UTC);
     }
 }

@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-plugins {
-    id "com.jfrog.bintray" version "1.1"
-}
-
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-def mongoVersion = '3.2.2'
-def bson4jacksonVersion = '2.7.0'
+def mongoVersion = '4.6.0'
+def bson4jacksonVersion = '2.13.1'
+def jacksonVersion = "2.13.3"
 
 group = 'fr.javatic.mongo'
 version = "${mongoVersion}__0.5"
@@ -37,18 +34,21 @@ repositories {
 dependencies {
     compile "org.mongodb:mongodb-driver-core:${mongoVersion}"
     compile "de.undercouch:bson4jackson:${bson4jacksonVersion}"
+    compile "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}"
+    compile "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
+    compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
 
     testCompile "junit:junit:4.12"
 }
 
-//tasks.withType(Javadoc) {
-//    options.links('http://docs.oracle.com/javase/8/docs/api/')
-//}
-//
-//task javadocJar(type: Jar, dependsOn: Javadoc) {
-//    classifier = 'javadoc'
-//    from 'build/docs/javadoc'
-//}
+tasks.withType(Javadoc) {
+    options.links('http://docs.oracle.com/javase/8/docs/api/')
+}
+
+task javadocJar(type: Jar, dependsOn: Javadoc) {
+    classifier = 'javadoc'
+    from 'build/docs/javadoc'
+}
 
 task sourcesJar(type: Jar) {
     from sourceSets.main.allSource
@@ -72,11 +72,17 @@ def projectInfo = [
 ]
 
 publishing {
+    repositories {
+        maven {
+            url = "https://repo.unnamed.team/repository/unnamed-releases/"
+
+            credentials(PasswordCredentials.class)
+        }
+    }
+
     publications {
         mavenJava(MavenPublication) {
             from components.java
-            Artifact sourcesJar
-            Artifact javadocJar
 
             pom.withXml {
                 asNode().children().last() + {
@@ -114,7 +120,7 @@ publishing {
 }
 
 
-bintray {
+/*bintray {
     user = bintrayUser
     key = bintrayKey
     publications = ['mavenJava']
@@ -135,3 +141,4 @@ bintray {
         }
     }
 }
+*/

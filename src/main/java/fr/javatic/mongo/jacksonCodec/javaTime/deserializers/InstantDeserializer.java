@@ -16,32 +16,33 @@
 
 package fr.javatic.mongo.jacksonCodec.javaTime.deserializers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.JacksonException;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import de.undercouch.bson4jackson.BsonConstants;
-import de.undercouch.bson4jackson.BsonParser;
-import de.undercouch.bson4jackson.deserializers.BsonDeserializer;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import de.undercouch.bson4jackson.deserializers.BsonDateDeserializer;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Date;
 
-public class InstantDeserializer extends BsonDeserializer<Instant> {
+public class InstantDeserializer extends JsonDeserializer<Instant> {
+
+    private final BsonDateDeserializer bsonDateDeserializer;
+
+    public InstantDeserializer() {
+        this(new BsonDateDeserializer());
+    }
+
+    public InstantDeserializer(BsonDateDeserializer bsonDateDeserializer) {
+        this.bsonDateDeserializer = bsonDateDeserializer;
+    }
+
+
     @Override
-    public Instant deserialize(BsonParser bsonParser, DeserializationContext ctxt) throws IOException,
-        JsonProcessingException {
-        if (bsonParser.getCurrentToken() != JsonToken.VALUE_EMBEDDED_OBJECT ||
-            bsonParser.getCurrentBsonType() != BsonConstants.TYPE_DATETIME) {
-            ctxt.mappingException(Date.class);
-        }
+    public Instant deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
+        Date date = bsonDateDeserializer.deserialize(p, ctxt);
 
-        Object obj = bsonParser.getEmbeddedObject();
-        if (obj == null) {
-            return null;
-        }
-
-        Date dt = (Date) obj;
-        return Instant.ofEpochMilli(dt.getTime());
+        return Instant.ofEpochMilli(date.getTime());
     }
 }

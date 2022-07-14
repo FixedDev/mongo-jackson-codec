@@ -16,16 +16,17 @@
 
 package fr.javatic.mongo.jacksonCodec.javaTime.serializers;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import de.undercouch.bson4jackson.BsonGenerator;
-import de.undercouch.bson4jackson.serializers.BsonSerializer;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.function.ToLongFunction;
 
-public abstract class InstantSerializerBase<T> extends BsonSerializer<T> {
+public abstract class InstantSerializerBase<T> extends JsonSerializer<T> {
     private final ToLongFunction<T> getEpochMillis;
 
     protected InstantSerializerBase(Class<T> supportedType, ToLongFunction<T> getEpochMillis) {
@@ -33,12 +34,14 @@ public abstract class InstantSerializerBase<T> extends BsonSerializer<T> {
     }
 
     @Override
-    public void serialize(T o, BsonGenerator bsonGenerator, SerializerProvider serializerProvider) throws
-        IOException, JsonProcessingException {
-        if (o == null) {
-            serializerProvider.defaultSerializeNull(bsonGenerator);
+    public void serialize(T value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+        if (value == null) {
+            serializers.defaultSerializeNull(gen);
+        } else if (gen instanceof BsonGenerator) {
+            BsonGenerator generator = (BsonGenerator) gen;
+            generator.writeDateTime(new Date(this.getEpochMillis.applyAsLong(value)));
         } else {
-            bsonGenerator.writeDateTime(new Date(this.getEpochMillis.applyAsLong(o)));
+            gen.writeNumber(this.getEpochMillis.applyAsLong(value));
         }
     }
 }
